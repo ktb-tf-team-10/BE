@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: ktb-tf-team-10-be
+
+  profiles:
+    active: local
+    include: secret
