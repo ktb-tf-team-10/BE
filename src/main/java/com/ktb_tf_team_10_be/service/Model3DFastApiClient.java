@@ -1,6 +1,7 @@
 package com.ktb_tf_team_10_be.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ktb_tf_team_10_be.dto.Model3DFastApiGenerateReq;
 import com.ktb_tf_team_10_be.dto.Model3DGenerateReq;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -23,15 +24,26 @@ public class Model3DFastApiClient {
      */
     public void request3D(
             String jobId,
-            Model3DGenerateReq request
+            String imageUrl1,
+            String imageUrl2,
+            String imageUrl3
 
     ) {
+
+        Model3DFastApiGenerateReq request = new Model3DFastApiGenerateReq(
+                jobId,
+                imageUrl1,
+                imageUrl2,
+                imageUrl3
+        );
+
         MultipartBodyBuilder bodyBuilder = new MultipartBodyBuilder();
 
         // jobId
         bodyBuilder.part("jobId", jobId);
-        bodyBuilder.part("request", toJson(request))
-                .contentType(MediaType.APPLICATION_JSON);
+        bodyBuilder.part("imageUrl1", imageUrl1);
+        bodyBuilder.part("imageUrl2", imageUrl2);
+        bodyBuilder.part("imageUrl3", imageUrl3);
 
         // TODO: 3D 생성에 필요한 추가 파라미터가 있다면 여기에 추가
         // 예: 2D 이미지 URL, 설정값 등
@@ -39,9 +51,9 @@ public class Model3DFastApiClient {
         try {
             // FastAPI에 비동기 요청 (응답을 기다리지 않음)
             fastApiClient.post()
-                    .uri("/api/tasks/{jobId}/status")
-                    .contentType(MediaType.MULTIPART_FORM_DATA)
-                    .bodyValue(bodyBuilder.build())
+                    .uri("/api/generate")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(request)
                     .retrieve()
                     .toBodilessEntity()
                     .subscribe(

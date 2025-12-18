@@ -6,4 +6,5 @@ public record Model3DGenerateReq(
         String mainImageUrl,           // 필수
         List<String> optionalImageUrls // 선택 (0~2)
 ) {
+
 }
