@@ -15,7 +15,12 @@ public class CorsConfig {
         CorsConfiguration config = new CorsConfiguration();
 
         // 모든 origin 허용
-        config.addAllowedOriginPattern("*");
+        config.addAllowedOrigin("http://localhost:5173");
+        config.addAllowedOrigin("http://localhost:5174");
+        config.addAllowedOrigin("http://3.38.107.141:8080");
+        config.addAllowedOrigin("https://d21m8tnz76fb5w.cloudfront.net");
+
+
 
         // 모든 HTTP 메서드 허용
         config.addAllowedMethod("*");
