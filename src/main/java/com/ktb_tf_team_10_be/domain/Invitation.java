@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Getter
@@ -41,5 +42,13 @@ public class Invitation {
     public void updateStatus(InvitationStatus status) {
         this.status = status;
         this.updatedAt = LocalDateTime.now();
+    }
+
+    public static Invitation createDev() {
+        return new Invitation(
+                "DEV-" + UUID.randomUUID(),
+                InvitationStatus.INIT,
+                LocalDateTime.now()
+        );
     }
 }
