@@ -8,7 +8,7 @@ import com.ktb_tf_team_10_be.dto.*;
 import com.ktb_tf_team_10_be.repository.DesignJobRepository;
 import com.ktb_tf_team_10_be.repository.InvitationRepository;
 import com.ktb_tf_team_10_be.service.Design2DFastApiClient;
-import com.ktb_tf_team_10_be.service.DesignEditFastApiClient;
+//import com.ktb_tf_team_10_be.service.DesignEditFastApiClient;
 import com.ktb_tf_team_10_be.service.Model3DFastApiClient;
 import com.ktb_tf_team_10_be.service.PosterFastApiClient;
 import com.ktb_tf_team_10_be.service.S3Service;
@@ -37,7 +37,7 @@ public class InvitationController {
 
     private final TempTokenService tempTokenService;
     private final Design2DFastApiClient design2DFastApiClient;
-    private final DesignEditFastApiClient designEditFastApiClient;
+//    private final DesignEditFastApiClient designEditFastApiClient;
     private final Model3DFastApiClient model3DFastApiClient;
     private final PosterFastApiClient posterFastApiClient;
     private final S3Service s3Service;
@@ -238,56 +238,56 @@ public class InvitationController {
     /**
      * [6-2] 부분 수정하기
      */
-    @PostMapping(
-            value = "/api/invitations/design/edit",
-            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
-    )
-    public ResponseEntity<DesignEditRes> editDesign(
-            HttpServletRequest httpRequest,
-            @RequestPart("request") DesignEditReq request,
-            @RequestPart(value = "styleImages", required = false)
-            List<MultipartFile> styleImages
-    ) {
-        // 1. 쿠키에서 Invitation 조회
-        Invitation invitation = getInvitationFromCookie(httpRequest);
-        if (invitation == null) {
-            return ResponseEntity.status(401).body(new DesignEditRes("NO_COOKIE", null));
-        }
-
-        // 2. jobId 생성
-        String jobId = UUID.randomUUID().toString();
-
-        // 3. 스타일 이미지 S3 업로드
-        List<String> styleImageUrls = s3Service.uploadImages(styleImages, "style-images");
-
-        // 4. DesignJob 생성 (DESIGN_2D - 부분 수정도 2D 카테고리)
-        DesignJob job = DesignJob.create(jobId, invitation, DesignJobType.DESIGN_2D);
-        designJobRepository.save(job);
-
-        // 5. PROCESSING으로 변경
-        job.startProcessing();
-        designJobRepository.save(job);
-
-        try {
-            // 6. FastAPI 호출 (동기 - 이미지 URL 전달)
-            List<String> resultImageUrls = designEditFastApiClient.requestEdit(jobId, request, styleImageUrls);
-
-            // 7. Job 완료 처리
-            job.complete(resultImageUrls);
-            designJobRepository.save(job);
-
-            // 8. FE에 완료된 이미지 URL 즉시 반환
-            return ResponseEntity.ok(new DesignEditRes("COMPLETED", resultImageUrls));
-
-        } catch (Exception e) {
-            // 실패 처리
-            job.fail(e.getMessage());
-            designJobRepository.save(job);
-
-            return ResponseEntity.status(500)
-                    .body(new DesignEditRes("FAILED", null));
-        }
-    }
+//    @PostMapping(
+//            value = "/api/invitations/design/edit",
+//            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+//    )
+//    public ResponseEntity<DesignEditRes> editDesign(
+//            HttpServletRequest httpRequest,
+//            @RequestPart("request") DesignEditReq request,
+//            @RequestPart(value = "styleImages", required = false)
+//            List<MultipartFile> styleImages
+//    ) {
+//        // 1. 쿠키에서 Invitation 조회
+//        Invitation invitation = getInvitationFromCookie(httpRequest);
+//        if (invitation == null) {
+//            return ResponseEntity.status(401).body(new DesignEditRes("NO_COOKIE", null));
+//        }
+//
+//        // 2. jobId 생성
+//        String jobId = UUID.randomUUID().toString();
+//
+//        // 3. 스타일 이미지 S3 업로드
+//        List<String> styleImageUrls = s3Service.uploadImages(styleImages, "style-images");
+//
+//        // 4. DesignJob 생성 (DESIGN_2D - 부분 수정도 2D 카테고리)
+//        DesignJob job = DesignJob.create(jobId, invitation, DesignJobType.DESIGN_2D);
+//        designJobRepository.save(job);
+//
+//        // 5. PROCESSING으로 변경
+//        job.startProcessing();
+//        designJobRepository.save(job);
+//
+//        try {
+//            // 6. FastAPI 호출 (동기 - 이미지 URL 전달)
+//            List<String> resultImageUrls = designEditFastApiClient.requestEdit(jobId, request, styleImageUrls);
+//
+//            // 7. Job 완료 처리
+//            job.complete(resultImageUrls);
+//            designJobRepository.save(job);
+//
+//            // 8. FE에 완료된 이미지 URL 즉시 반환
+//            return ResponseEntity.ok(new DesignEditRes("COMPLETED", resultImageUrls));
+//
+//        } catch (Exception e) {
+//            // 실패 처리
+//            job.fail(e.getMessage());
+//            designJobRepository.save(job);
+//
+//            return ResponseEntity.status(500)
+//                    .body(new DesignEditRes("FAILED", null));
+//        }
+//    }
 
     /**
      * [7-3] 3D 청첩장 요청
