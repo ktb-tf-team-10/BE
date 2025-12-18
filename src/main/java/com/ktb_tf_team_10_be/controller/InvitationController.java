@@ -415,7 +415,7 @@ public class InvitationController {
         cookie.setSecure(true); // local=false
         cookie.setPath("/");
         cookie.setMaxAge(60 * 60 * 24);
-        cookie.setAttribute("SameSite", "Lax");
+        cookie.setAttribute("SameSite", "None");
         return cookie;
     }
 
