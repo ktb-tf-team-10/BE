@@ -1,0 +1,76 @@
+name: CD - Deploy to EC2
+
+on:
+  workflow_run:
+    workflows: ["CI - Build & Push"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Image tag to deploy (default: latest)"
+        required: false
+        default: "latest"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Login to Amazon ECR Public
+        id: login-ecr-public
+        uses: aws-actions/amazon-ecr-login@v2
+        with:
+          registry-type: public
+
+      - name: Set image tag
+        id: set-tag
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "IMAGE_TAG=${{ github.event.inputs.image_tag }}" >> $GITHUB_OUTPUT
+          else
+            echo "IMAGE_TAG=${{ github.event.workflow_run.head_sha }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr-public.outputs.registry }}
+          IMAGE_NAME: ${{ secrets.ECR_REPOSITORY }}
+          IMAGE_TAG: ${{ steps.set-tag.outputs.IMAGE_TAG }}
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          envs: ECR_REGISTRY,IMAGE_NAME,IMAGE_TAG
+          script: |
+            # ECR Public 로그인
+            aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws
+
+            # 기존 컨테이너 중지 및 삭제
+            docker stop ktb-be 2>/dev/null || true
+            docker rm ktb-be 2>/dev/null || true
+
+            # 새 이미지 pull
+            docker pull $ECR_REGISTRY/$IMAGE_NAME:$IMAGE_TAG
+
+            # 컨테이너 실행
+            docker run -d \
+              --name ktb-be \
+              --restart unless-stopped \
+              -p 8080:8080 \
+              --env-file /home/ubuntu/.env \
+              $ECR_REGISTRY/$IMAGE_NAME:$IMAGE_TAG
+
+            # 오래된 이미지 정리
+            docker image prune -af
+
+            echo "Deployed image: $ECR_REGISTRY/$IMAGE_NAME:$IMAGE_TAG"

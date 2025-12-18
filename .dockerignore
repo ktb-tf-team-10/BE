@@ -1,0 +1,41 @@
+# Build outputs
+build/
+out/
+target/
+bin/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# Git
+.git/
+.gitignore
+
+# Gradle
+.gradle/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docs
+*.md
+LICENSE
+
+# Keys & Secrets
+*.pem
+*.key
+.env
+.env.*
+
+# Test
+src/test/
