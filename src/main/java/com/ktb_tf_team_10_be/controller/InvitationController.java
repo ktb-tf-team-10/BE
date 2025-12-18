@@ -141,6 +141,57 @@ public class InvitationController {
     }
 
     /**
+     * ⚠️ [DEV ONLY] 쿠키 없이 2D 디자인 테스트용 API
+     * 프론트 기능 테스트 전용 (나중에 반드시 삭제)
+     */
+    @PostMapping(
+            value = "/api/dev/invitations/design",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    public ResponseEntity<Design2DGenerateRes> devCreateInvitation(
+            @RequestPart("request") Design2DGenerateReq request,
+            @RequestPart(value = "weddingImage", required = false)
+            MultipartFile weddingImage,
+            @RequestPart(value = "styleImages", required = false)
+            List<MultipartFile> styleImages
+    ) {
+
+        // ✅ 1. 임시 Invitation 생성 (쿠키/DB 의존 제거)
+        Invitation invitation = Invitation.createDev();
+        invitationRepository.save(invitation);
+
+        // 2. jobId 생성
+        String jobId = UUID.randomUUID().toString();
+
+        // 3. 이미지 S3 업로드
+        String weddingImageUrl = s3Service.uploadImage(weddingImage, "wedding-images");
+        List<String> styleImageUrls = s3Service.uploadImages(styleImages, "style-images");
+
+        // 4. DesignJob 생성
+        DesignJob job = DesignJob.create(jobId, invitation, DesignJobType.DESIGN_2D);
+        designJobRepository.save(job);
+
+        // 5️⃣ PROCESSING → COMPLETED 바로 전환
+        job.startProcessing();
+        designJobRepository.save(job);
+
+        // 6️⃣ 🎯 MOCK 결과 생성 (프론트 기대 구조)
+        List<String> mockResultImageUrls = List.of(
+                weddingImageUrl,
+                styleImageUrls.get(0)
+        );
+
+        // 7️⃣ 완료 처리
+        job.complete(mockResultImageUrls);
+        designJobRepository.save(job);
+
+        // 8️⃣ 응답
+        return ResponseEntity.ok(
+                new Design2DGenerateRes("COMPLETED", mockResultImageUrls)
+        );
+    }
+
+    /**
      * [폴링] 2D 디자인 상태 조회
      */
     @GetMapping("/api/invitations/design/status")
