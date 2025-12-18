@@ -1,6 +1,6 @@
 package com.ktb_tf_team_10_be.domain;
 
-public enum FrameStyle {
+public enum Frame {
 
     CLASSIC("클래식", "elegant classic wedding invitation"),
     FLORAL("플로럴", "flower-rich floral wedding invitation"),
@@ -10,7 +10,7 @@ public enum FrameStyle {
     private final String displayName;
     private final String promptHint;
 
-    FrameStyle(String displayName, String promptHint) {
+    Frame(String displayName, String promptHint) {
         this.displayName = displayName;
         this.promptHint = promptHint;
     }

@@ -1,6 +1,6 @@
 package com.ktb_tf_team_10_be.dto;
 
-import com.ktb_tf_team_10_be.domain.FrameStyle;
+import com.ktb_tf_team_10_be.domain.Frame;
 
 public record Design2DGenerateReq(
 
@@ -11,8 +11,7 @@ public record Design2DGenerateReq(
         String extraMessage,
         String additionalRequest,
         String tone,
-        String frame,
-        FrameStyle frameStyle
+        Frame frame
 
 ) {
 
