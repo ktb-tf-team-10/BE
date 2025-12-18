@@ -361,7 +361,7 @@ public class InvitationController {
 
         Cookie cookie = new Cookie(TEMP_TOKEN_COOKIE, token);
         cookie.setHttpOnly(true);
-        cookie.setSecure(true); // local=false
+        cookie.setSecure(false); // local=false
         cookie.setPath("/");
         cookie.setMaxAge(60 * 60 * 24);
         cookie.setAttribute("SameSite", "Lax");
