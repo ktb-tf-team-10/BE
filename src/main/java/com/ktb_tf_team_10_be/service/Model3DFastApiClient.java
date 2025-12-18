@@ -36,11 +36,16 @@ public class Model3DFastApiClient {
 
         MultipartBodyBuilder bodyBuilder = new MultipartBodyBuilder();
 
-        // jobId
         bodyBuilder.part("jobId", jobId);
-        bodyBuilder.part("imageUrl1", imageUrl1);
-        bodyBuilder.part("imageUrl2", imageUrl2);
-        bodyBuilder.part("imageUrl3", imageUrl3);
+        bodyBuilder.part("image1", imageUrl1);
+
+        if (imageUrl2 != null) {
+            bodyBuilder.part("image2", imageUrl2);
+        }
+
+        if (imageUrl3 != null) {
+            bodyBuilder.part("image3", imageUrl3);
+        }
 
         // TODO: 3D 생성에 필요한 추가 파라미터가 있다면 여기에 추가
         // 예: 2D 이미지 URL, 설정값 등
