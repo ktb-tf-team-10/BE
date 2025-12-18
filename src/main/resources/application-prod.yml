@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: ktb-tf-team-10-be
+
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERANME}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate.format_sql: true
+  cloud:
+    aws:
+      region:
+        static: ap-northeast-2  # 서울 리전
+      s3:
+        bucket: ktb-hakcathon-file  # TODO: 실제 버킷 이름으로 변경
+        enabled: true
+
+cloudflare:
+  cdn-domain: dns7warjxrmv9.cloudfront.net
+      # AWS CLI로 설정한 자격증명 자동 사용 (credentials 설정 제거)
+logging:
+  level:
+    org.hibernate.SQL: debug
+    org.hibernate.type.descriptor.sql: trace

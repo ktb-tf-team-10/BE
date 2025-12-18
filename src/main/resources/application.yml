@@ -3,5 +3,5 @@ spring:
     name: ktb-tf-team-10-be
 
   profiles:
-    active: local
+    active: prod
     include: secret
