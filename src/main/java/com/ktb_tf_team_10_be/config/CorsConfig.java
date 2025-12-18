@@ -19,6 +19,7 @@ public class CorsConfig {
         config.addAllowedOrigin("http://localhost:5174");
         config.addAllowedOrigin("http://3.38.107.141:8080");
         config.addAllowedOrigin("https://d21m8tnz76fb5w.cloudfront.net");
+        config.addAllowedOrigin("https://marry-invitation.com");
 
 
 
