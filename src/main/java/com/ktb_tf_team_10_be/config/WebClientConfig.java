@@ -7,7 +7,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 @Configuration
 public class WebClientConfig {
 
-    private final String baseURL = "http://10.0.0.88:8000";
+    private final String baseURL = "http://54.180.137.99:8000";
 
     @Bean
     public WebClient fastApiClient() {

@@ -262,14 +262,16 @@ public class InvitationController {
         designJobRepository.save(job);
 
         // 3️⃣ S3 업로드
-        String mainImageUrl = s3Service.uploadImage(mainImage, "main-images");
+        String imageUrl1 = s3Service.uploadImage(mainImage, "main-images");
 
         List<String> optionalImageUrls = optionalImages != null
                 ? s3Service.uploadImages(optionalImages, "optional-images")
                 : List.of();
+        String imageUrl2 = optionalImageUrls.size() > 0 ? optionalImageUrls.get(0) : null;
+        String imageUrl3 = optionalImageUrls.size() > 1 ? optionalImageUrls.get(1) : null;
 
         // 3. FastAPI 호출 (비동기)
-        model3DFastApiClient.request3D(jobId, new Model3DGenerateReq(mainImageUrl, optionalImageUrls));
+        model3DFastApiClient.request3D(jobId, imageUrl1, imageUrl2, imageUrl3);
 
         // 4. PROCESSING으로 변경
         job.startProcessing();
