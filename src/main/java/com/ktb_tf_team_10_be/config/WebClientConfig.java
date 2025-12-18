@@ -11,7 +11,8 @@ import java.time.Duration;
 @Configuration
 public class WebClientConfig {
 
-    private final String baseURL = "http://54.180.137.99:8000";
+//    private final String baseURL = "http://54.180.137.99:8000";
+    private final String baseURL = "http://3.34.50.107:8000";
 
     @Bean
     public WebClient fastApiClient() {
