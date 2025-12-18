@@ -1,0 +1,19 @@
+spring:
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:testdb
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    database-platform: org.hibernate.dialect.H2Dialect
+  cloud:
+    aws:
+      s3:
+        enabled: false  # 테스트 환경에서 S3 비활성화
+      credentials:
+        access-key: test
+        secret-key: test
+      region:
+        static: ap-northeast-2
