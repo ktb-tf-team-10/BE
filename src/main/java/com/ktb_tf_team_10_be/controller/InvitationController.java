@@ -88,7 +88,7 @@ public class InvitationController {
     )
     public ResponseEntity<Design2DGenerateRes> createInvitation(
             HttpServletRequest httpRequest,
-            @RequestPart("request") Design2DGenerateReq request,
+            @RequestPart("data") Design2DGenerateReq request,
             @RequestPart(value = "weddingImage", required = false)
             MultipartFile weddingImage,
             @RequestPart(value = "styleImages", required = false)
@@ -225,7 +225,7 @@ public class InvitationController {
     )
     public ResponseEntity<Design2DGenerateRes> retryDesign(
             HttpServletRequest httpRequest,
-            @RequestPart("request") Design2DGenerateReq request,
+            @RequestPart("data") Design2DGenerateReq request,
             @RequestPart(value = "weddingImage", required = false)
             MultipartFile weddingImage,
             @RequestPart(value = "styleImages", required = false)
