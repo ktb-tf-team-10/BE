@@ -2,20 +2,17 @@ package com.ktb_tf_team_10_be.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ktb_tf_team_10_be.dto.Model3DFastApiGenerateReq;
-import com.ktb_tf_team_10_be.dto.Model3DGenerateReq;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import java.util.List;
-
 @Service
 @RequiredArgsConstructor
 public class Model3DFastApiClient {
 
-    private final WebClient fastApiClient;
+    private final WebClient fastApi3DClient;
     private final ObjectMapper objectMapper;
 
     /**
@@ -50,7 +47,7 @@ public class Model3DFastApiClient {
 
         try {
             // FastAPI에 비동기 요청 (응답을 기다리지 않음)
-            fastApiClient.post()
+            fastApi3DClient.post()
                     .uri("/api/generate")
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(request)

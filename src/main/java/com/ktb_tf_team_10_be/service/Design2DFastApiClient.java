@@ -6,18 +6,16 @@ import com.ktb_tf_team_10_be.dto.FastApiDesign2DRequest;
 import com.ktb_tf_team_10_be.dto.FastApiDesign2DResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
-import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import java.util.Collections;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class Design2DFastApiClient {
 
-    private final WebClient fastApiClient;
+    private final WebClient fastApi2DClient;
     private final ObjectMapper objectMapper;
 
     /**
@@ -44,12 +42,10 @@ public class Design2DFastApiClient {
                         : null,
                 req.extraMessage(),
                 req.additionalRequest(),
-                req.tone(),
-                "CLASSIC", // 나중에 수정
-                "models/gemini-3-pro-image-preview"
+                req.tone()
         );
 
-        FastApiDesign2DResponse response = fastApiClient.post()
+        FastApiDesign2DResponse response = fastApi2DClient.post()
                 .uri("/api/generate-invitation")
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(body)

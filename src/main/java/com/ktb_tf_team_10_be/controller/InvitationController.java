@@ -10,7 +10,7 @@ import com.ktb_tf_team_10_be.repository.InvitationRepository;
 import com.ktb_tf_team_10_be.service.Design2DFastApiClient;
 //import com.ktb_tf_team_10_be.service.DesignEditFastApiClient;
 import com.ktb_tf_team_10_be.service.Model3DFastApiClient;
-import com.ktb_tf_team_10_be.service.PosterFastApiClient;
+//import com.ktb_tf_team_10_be.service.PosterFastApiClient;
 import com.ktb_tf_team_10_be.service.S3Service;
 import com.ktb_tf_team_10_be.service.TempTokenService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -39,7 +39,7 @@ public class InvitationController {
     private final Design2DFastApiClient design2DFastApiClient;
 //    private final DesignEditFastApiClient designEditFastApiClient;
     private final Model3DFastApiClient model3DFastApiClient;
-    private final PosterFastApiClient posterFastApiClient;
+//    private final PosterFastApiClient posterFastApiClient;
     private final S3Service s3Service;
     private final ObjectMapper objectMapper;
     private final DesignJobRepository designJobRepository;
@@ -331,32 +331,32 @@ public class InvitationController {
         return ResponseEntity.ok(new Design2DGenerateRes("PROCESSING", null));
     }
 
-    /**
-     * [8] 포스터 요청
-     */
-    @PostMapping("/api/invitations/poster")
-    public ResponseEntity<Design2DGenerateRes> createPoster(HttpServletRequest httpRequest) {
-        Invitation invitation = getInvitationFromCookie(httpRequest);
-        if (invitation == null) {
-            return ResponseEntity.status(401).body(new Design2DGenerateRes("NO_COOKIE", null));
-        }
-
-        // 1. jobId 생성
-        String jobId = UUID.randomUUID().toString();
-
-        // 2. DesignJob 생성 (POSTER)
-        DesignJob job = DesignJob.create(jobId, invitation, DesignJobType.POSTER);
-        designJobRepository.save(job);
-
-        // 3. FastAPI 호출 (비동기)
-        posterFastApiClient.requestPoster(jobId);
-
-        // 4. PROCESSING으로 변경
-        job.startProcessing();
-        designJobRepository.save(job);
-
-        return ResponseEntity.ok(new Design2DGenerateRes("PROCESSING", null));
-    }
+//    /**
+//     * [8] 포스터 요청
+//     */
+//    @PostMapping("/api/invitations/poster")
+//    public ResponseEntity<Design2DGenerateRes> createPoster(HttpServletRequest httpRequest) {
+//        Invitation invitation = getInvitationFromCookie(httpRequest);
+//        if (invitation == null) {
+//            return ResponseEntity.status(401).body(new Design2DGenerateRes("NO_COOKIE", null));
+//        }
+//
+//        // 1. jobId 생성
+//        String jobId = UUID.randomUUID().toString();
+//
+//        // 2. DesignJob 생성 (POSTER)
+//        DesignJob job = DesignJob.create(jobId, invitation, DesignJobType.POSTER);
+//        designJobRepository.save(job);
+//
+//        // 3. FastAPI 호출 (비동기)
+//        posterFastApiClient.requestPoster(jobId);
+//
+//        // 4. PROCESSING으로 변경
+//        job.startProcessing();
+//        designJobRepository.save(job);
+//
+//        return ResponseEntity.ok(new Design2DGenerateRes("PROCESSING", null));
+//    }
 
     /* ========== 공통 헬퍼 메서드 ========== */
 
