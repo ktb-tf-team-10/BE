@@ -3,6 +3,7 @@ package com.ktb_tf_team_10_be.dto;
 public enum InvitationStatus {
 
     // 초기
+    INIT,
     CREATED,                // invitation 생성 직후
     BASIC_INFO_DONE,        // STEP 2 완료
 

@@ -6,7 +6,7 @@ import com.ktb_tf_team_10_be.repository.InvitationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import static com.ktb_tf_team_10_be.domain.invitation.InvitationStepResolver.*;
+import static com.ktb_tf_team_10_be.domain.InvitationStepResolver.resolveNextStep;
 
 @Service
 @RequiredArgsConstructor

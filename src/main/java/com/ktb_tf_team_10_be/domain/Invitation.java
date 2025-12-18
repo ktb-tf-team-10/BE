@@ -31,6 +31,13 @@ public class Invitation {
 
     /* ===== 상태 전이 메서드 ===== */
 
+    public Invitation(String tempToken, InvitationStatus status, LocalDateTime createdAt) {
+        this.tempToken = tempToken;
+        this.status = status;
+        this.createdAt = createdAt;
+    }
+
+
     public void updateStatus(InvitationStatus status) {
         this.status = status;
         this.updatedAt = LocalDateTime.now();

@@ -18,14 +18,17 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 public class InvitationController {
@@ -53,10 +56,18 @@ public class InvitationController {
             HttpServletResponse response
     ) {
         Cookie tempTokenCookie = findCookie(request, TEMP_TOKEN_COOKIE);
-
         if (tempTokenCookie == null) {
             String newToken = tempTokenService.issue();
-            response.addCookie(createTempTokenCookie(newToken));
+            Cookie tokenCookie = createTempTokenCookie(newToken);
+            response.addCookie(tokenCookie);
+            Invitation  invitation = new Invitation(
+                    newToken,
+                    InvitationStatus.INIT,
+                    LocalDateTime.now()
+            );
+
+            log.info("Invitation init: {}", invitation);
+            invitationRepository.save(invitation);
         }
 
         InitResponse initResponse = new InitResponse(
@@ -65,7 +76,6 @@ public class InvitationController {
                 null,
                 NextStep.START_BASIC_INFO
         );
-
         return ResponseEntity.ok(initResponse);
     }
 
@@ -305,7 +315,6 @@ public class InvitationController {
         if (tempTokenCookie == null) {
             return null;
         }
-
         return invitationRepository
                 .findTopByTempTokenOrderByCreatedAtDesc(tempTokenCookie.getValue())
                 .orElse(null);
@@ -350,7 +359,7 @@ public class InvitationController {
 
         Cookie cookie = new Cookie(TEMP_TOKEN_COOKIE, token);
         cookie.setHttpOnly(true);
-        cookie.setSecure(true);
+        cookie.setSecure(true); // local=false
         cookie.setPath("/");
         cookie.setMaxAge(60 * 60 * 24);
         cookie.setAttribute("SameSite", "Lax");

@@ -28,7 +28,7 @@ dependencies {
     implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3:3.0.0'
 
     runtimeOnly 'com.mysql:mysql-connector-j'
-    testRuntimeOnly 'com.h2database:h2'  // 테스트용 H2 DB
+//    testRuntimeOnly 'com.h2database:h2'  // 테스트용 H2 DB
 
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'

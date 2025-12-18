@@ -1,4 +1,4 @@
-package com.ktb_tf_team_10_be.domain.invitation;
+package com.ktb_tf_team_10_be.domain;
 
 import com.ktb_tf_team_10_be.domain.NextStep;
 import com.ktb_tf_team_10_be.dto.InvitationStatus;
@@ -9,6 +9,7 @@ public class InvitationStepResolver {
 
         return switch (status) {
 
+            case INIT -> null;
             case CREATED,
                  BASIC_INFO_DONE ->
                     NextStep.SELECT_TONE;
