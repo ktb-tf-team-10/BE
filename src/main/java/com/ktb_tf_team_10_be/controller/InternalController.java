@@ -24,7 +24,7 @@ public class InternalController {
 
     /**
      * [진행 상태 업데이트] FastAPI가 작업 진행 상태를 주기적으로 업데이트
-     * POST /api/internal/invitations/progress?jobId=xxx
+     * POST /api/internal/invitations/progress
      * Body: {"jobId": "xxx", "step": 1, "step_name": "GENERATING_IMAGE", "progress": 15}
      */
     @PostMapping("/invitations/progress")
