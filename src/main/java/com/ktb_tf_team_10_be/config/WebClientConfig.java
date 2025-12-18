@@ -2,7 +2,11 @@ package com.ktb_tf_team_10_be.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.netty.http.client.HttpClient;
+
+import java.time.Duration;
 
 @Configuration
 public class WebClientConfig {
@@ -13,6 +17,12 @@ public class WebClientConfig {
     public WebClient fastApiClient() {
         return WebClient.builder()
                 .baseUrl(baseURL)
+                .clientConnector(
+                        new ReactorClientHttpConnector(
+                                HttpClient.create()
+                                        .responseTimeout(Duration.ofMinutes(15))
+                        )
+                )
                 .build();
     }
 }
