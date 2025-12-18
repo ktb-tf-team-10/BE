@@ -1,14 +1,12 @@
 package com.ktb_tf_team_10_be.dto;
 
 public record Design2DGenerateReq(
-
         Groom groom,
         Bride bride,
         Wedding wedding,
         String extraMessage,
         String additionalRequest,
-        String tone,
-        String frame // 나중에 삭제
+        String tone
 ) {
 
     public record Groom(

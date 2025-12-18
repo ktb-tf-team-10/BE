@@ -8,7 +8,5 @@ public record FastApiDesign2DRequest(
         String styleImageUrl,
         String extraMessage,
         String additionalRequest,
-        String tone,
-        String frame, // 삭제해야함
-        String modelName
+        String tone
 ) {}
