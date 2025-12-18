@@ -25,7 +25,7 @@ cloudflare:
   cdn-domain: dns7warjxrmv9.cloudfront.net
 
 server:
-  forward-headers-strategy: framework
+  forward-headers-strategy: native
       # AWS CLI로 설정한 자격증명 자동 사용 (credentials 설정 제거)
 logging:
   level:
