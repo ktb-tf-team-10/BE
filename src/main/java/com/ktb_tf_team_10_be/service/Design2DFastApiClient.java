@@ -57,10 +57,10 @@ public class Design2DFastApiClient {
                 .bodyToMono(FastApiDesign2DResponse.class)
                 .block();
 
-        if (response == null || !"success".equals(response.status())) {
+        if (response == null || !response.success() || response.data() == null) {
             throw new RuntimeException("FastAPI 2D 디자인 실패");
         }
 
-        return response.imageUrls();
+        return response.data().imageUrls();
     }
 }
