@@ -47,7 +47,7 @@ public class InvitationController {
     private final InvitationRepository invitationRepository;
     private final ResultLinkRepository resultLinkRepository;
 
-    private static final String DEV_TOKEN = "DEV-TOKEN-FIXED";
+    private static final String DEV_TOKEN = "DEV-TOKEN-FIXED-2";
 
 
     @GetMapping("/api/health-check")
@@ -70,7 +70,7 @@ public class InvitationController {
                     InvitationStatus.INIT,
                     LocalDateTime.now()
             );
-
+            invitation.updateShareToken();
             log.info("Invitation init: {}", invitation);
             invitationRepository.save(invitation);
         }
@@ -82,6 +82,48 @@ public class InvitationController {
                 NextStep.START_BASIC_INFO
         );
         return ResponseEntity.ok(initResponse);
+    }
+
+    @GetMapping("/api/results/share")
+    public ResponseEntity<ResultViewRes> getResultByToken(
+            @RequestParam("token") String shareToken
+    ) {
+        Invitation invitation = invitationRepository
+                .findByShareToken(shareToken)
+                .orElse(null);
+
+        if (invitation == null) {
+            return ResponseEntity.status(404)
+                    .body(new ResultViewRes(false, null));
+        }
+
+        DesignJob job2d = designJobRepository
+                .findTopByInvitationIdAndJobTypeOrderByCreatedAtDesc(
+                        invitation.getId(), DESIGN_2D)
+                .orElse(null);
+
+        DesignJob job3d = designJobRepository
+                .findTopByInvitationIdAndJobTypeOrderByCreatedAtDesc(
+                        invitation.getId(), MODEL_3D)
+                .orElse(null);
+
+        if (job2d == null || job3d == null) {
+            return ResponseEntity.ok(new ResultViewRes(false, null));
+        }
+
+        return ResponseEntity.ok(
+                ResultViewRes.success(
+                        null,
+                        null,
+                        job2d.getResultImageUrls(),
+                        job3d.getResultImageUrls().get(0),
+                        new ResultViewRes.Texts(
+                                job2d.getText_greeting(),
+                                job2d.getText_invitation(),
+                                job2d.getText_location()
+                        )
+                )
+        );
     }
 
     /**
@@ -381,6 +423,7 @@ public class InvitationController {
     @GetMapping("/api/results")
     public ResponseEntity<ResultViewRes> getResult(HttpServletRequest request) {
         // 1. 쿠키에서 Invitation 조회
+//        Invitation invitation = getOrCreateDevInvitation();
         Invitation invitation = getInvitationFromCookie(request);
         if (invitation == null) {
             return ResponseEntity.status(401).body(new ResultViewRes(false, null));
@@ -403,8 +446,21 @@ public class InvitationController {
             return ResponseEntity.status(404).body(new ResultViewRes(false, null));
         }
 
+        if (invitation.getShareToken() == null) {
+            invitation.updateShareToken();
+            invitationRepository.save(invitation);
+        }
+
+        String shareUrl =
+                "https://dns7warjxrmv9.cloudfront.net/share?token=" + invitation.getShareToken();
+        if (job_3d.getResultImageUrls() == null || job_3d.getResultImageUrls().isEmpty()) {
+            return ResponseEntity.ok(new ResultViewRes(false, null));
+        }
+
         return ResponseEntity.ok(
                 ResultViewRes.success(
+                        invitation.getShareToken(),
+                        shareUrl,
                         job_2d.getResultImageUrls(),
                         job_3d.getResultImageUrls().get(0),
                         new ResultViewRes.Texts(
@@ -518,7 +574,7 @@ public class InvitationController {
     private Cookie createTempTokenCookie(String token) {
 
         Cookie cookie = new Cookie(TEMP_TOKEN_COOKIE, token);
-        cookie.setHttpOnly(true);
+        cookie.setHttpOnly(false);
         cookie.setSecure(true); // local=false
         cookie.setPath("/");
         cookie.setMaxAge(60 * 60 * 24);
@@ -549,6 +605,7 @@ public class InvitationController {
                             InvitationStatus.INIT,
                             LocalDateTime.now()
                     );
+//                    inv.updateShareToken("DEV-SHARE-TOKEN");
                     return invitationRepository.save(inv);
                 });
     }

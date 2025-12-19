@@ -21,6 +21,9 @@ public class Invitation {
     @Column(nullable = false)
     private String tempToken;
 
+    @Column(nullable = true)
+    private String shareToken;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private InvitationStatus status;
@@ -38,6 +41,10 @@ public class Invitation {
         this.createdAt = createdAt;
     }
 
+    public void updateShareToken() {
+        this.shareToken = UUID.randomUUID().toString();
+        this.updatedAt = LocalDateTime.now();
+    }
 
     public void updateStatus(InvitationStatus status) {
         this.status = status;

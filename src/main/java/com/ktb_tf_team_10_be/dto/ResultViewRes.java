@@ -7,16 +7,20 @@ public record ResultViewRes(
         Data data
 ) {
     public static ResultViewRes success(
+            String shareToken,
+            String shareUrl,
             List<String> imageUrls,
             String model3dUrl,
             Texts texts
     ) {
         return new ResultViewRes(true,
-                new Data(imageUrls, model3dUrl, texts)
+                new Data(shareToken, shareUrl, imageUrls, model3dUrl, texts)
         );
     }
 
     public record Data(
+            String shareToken,
+            String shareUrl,
             List<String> imageUrls,
             String model3dUrl,
             Texts texts
