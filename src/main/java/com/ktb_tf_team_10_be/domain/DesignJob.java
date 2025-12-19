@@ -62,6 +62,10 @@ public class DesignJob {
 
     private LocalDateTime updatedAt;
 
+    private String text_greeting;
+    private String text_invitation;
+    private String text_location;
+
     /* ===== 생성 메서드 ===== */
 
     public static DesignJob create(String jobId, Invitation invitation, DesignJobType jobType) {
@@ -92,6 +96,20 @@ public class DesignJob {
     public void complete(List<String> imageUrls) {
         this.status = DesignJobStatus.COMPLETED;
         this.resultImageUrls = imageUrls != null ? new ArrayList<>(imageUrls) : new ArrayList<>();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void complete(
+            List<String> imageUrls,
+            String greeting,
+            String invitation,
+            String location
+    ) {
+        this.status = DesignJobStatus.COMPLETED;
+        this.resultImageUrls = imageUrls != null ? new ArrayList<>(imageUrls) : new ArrayList<>();
+        this.text_greeting = greeting;
+        this.text_invitation = invitation;
+        this.text_location = location;
         this.updatedAt = LocalDateTime.now();
     }
 
