@@ -1,10 +1,14 @@
 package com.ktb_tf_team_10_be.controller;
 
 import com.ktb_tf_team_10_be.domain.DesignJob;
+import com.ktb_tf_team_10_be.domain.Invitation;
+import com.ktb_tf_team_10_be.domain.ResultLink;
 import com.ktb_tf_team_10_be.dto.CallbackRes;
 import com.ktb_tf_team_10_be.dto.FastApiCallbackReq;
 import com.ktb_tf_team_10_be.dto.ProgressUpdateReq;
 import com.ktb_tf_team_10_be.repository.DesignJobRepository;
+import com.ktb_tf_team_10_be.repository.InvitationRepository;
+import com.ktb_tf_team_10_be.repository.ResultLinkRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +25,8 @@ import org.springframework.web.bind.annotation.*;
 public class InternalController {
 
     private final DesignJobRepository designJobRepository;
+    private final ResultLinkRepository resultLinkRepository;
+    private final InvitationRepository invitationRepository;
 
     /**
      * [진행 상태 업데이트] FastAPI가 작업 진행 상태를 주기적으로 업데이트
@@ -50,6 +56,16 @@ public class InternalController {
         if ("COMPLETE".equals(request.stepName()) && request.modelUrl() != null) {
             job.complete(java.util.List.of(request.modelUrl()));
             designJobRepository.save(job);
+
+            Invitation invitation = job.getInvitation();
+
+            ResultLink resultLink = new ResultLink(
+                    invitation.getTempToken(),
+                    job.getJobId(),
+                    invitation
+            );
+
+            resultLinkRepository.save(resultLink);
             log.info("[Progress] Job marked as COMPLETED: jobId={}, modelUrl={}", request.jobId(), request.modelUrl());
         }
 

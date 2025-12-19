@@ -1,12 +1,10 @@
 package com.ktb_tf_team_10_be.controller;
 
-import com.ktb_tf_team_10_be.domain.DesignJob;
-import com.ktb_tf_team_10_be.domain.DesignJobType;
-import com.ktb_tf_team_10_be.domain.Invitation;
-import com.ktb_tf_team_10_be.domain.NextStep;
+import com.ktb_tf_team_10_be.domain.*;
 import com.ktb_tf_team_10_be.dto.*;
 import com.ktb_tf_team_10_be.repository.DesignJobRepository;
 import com.ktb_tf_team_10_be.repository.InvitationRepository;
+import com.ktb_tf_team_10_be.repository.ResultLinkRepository;
 import com.ktb_tf_team_10_be.service.Design2DFastApiClient;
 //import com.ktb_tf_team_10_be.service.DesignEditFastApiClient;
 import com.ktb_tf_team_10_be.service.Model3DFastApiClient;
@@ -28,6 +26,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import static com.ktb_tf_team_10_be.domain.DesignJobType.DESIGN_2D;
+import static com.ktb_tf_team_10_be.domain.DesignJobType.MODEL_3D;
+
 @Slf4j
 @RestController
 @RequiredArgsConstructor
@@ -44,6 +45,10 @@ public class InvitationController {
     private final ObjectMapper objectMapper;
     private final DesignJobRepository designJobRepository;
     private final InvitationRepository invitationRepository;
+    private final ResultLinkRepository resultLinkRepository;
+
+    private static final String DEV_TOKEN = "DEV-TOKEN-FIXED";
+
 
     @GetMapping("/api/health-check")
     public String healthCheck() {
@@ -107,7 +112,7 @@ public class InvitationController {
         List<String> styleImageUrls = s3Service.uploadImages(styleImages, "style-images");
 
         // 4. DesignJob 생성 및 저장 (PENDING 상태)
-        DesignJob job = DesignJob.create(jobId, invitation, DesignJobType.DESIGN_2D);
+        DesignJob job = DesignJob.create(jobId, invitation, DESIGN_2D);
         designJobRepository.save(job);
 
         // 5. 상태를 PROCESSING으로 변경
@@ -115,20 +120,31 @@ public class InvitationController {
         designJobRepository.save(job);
 
         try {
-            // 6. FastAPI에 동기 요청 (이미지 URL 전달)
-            List<String> resultImageUrls = design2DFastApiClient.requestDesign2D(
-                    jobId,
-                    request,
-                    weddingImageUrl,
-                    styleImageUrls
-            );
 
-            // 7. Job 완료 처리
-            job.complete(resultImageUrls);
+            // 5. FastAPI 2D 호출 (🔥 단 1번)
+            Design2DFastApiResponse response =
+                    design2DFastApiClient.requestDesign2D(
+                            jobId,
+                            request,
+                            weddingImageUrl,
+                            styleImageUrls
+                    );
+
+            Design2DFastApiResponse.Data data = response.data();
+
+            // 6. COMPLETED + 이미지 + 텍스트 저장
+            job.complete(
+                    data.imageUrls(),
+                    data.texts().greeting(),
+                    data.texts().invitation(),
+                    data.texts().location()
+            );
             designJobRepository.save(job);
 
             // 8. FE에 완료된 이미지 URL 즉시 반환
-            return ResponseEntity.ok(new Design2DGenerateRes("COMPLETED", resultImageUrls));
+            return ResponseEntity.ok(
+                    new Design2DGenerateRes("COMPLETED", data.imageUrls())
+            );
 
         } catch (Exception e) {
             // 실패 처리
@@ -156,36 +172,40 @@ public class InvitationController {
             List<MultipartFile> styleImages
     ) {
 
-        // ✅ 1. 임시 Invitation 생성 (쿠키/DB 의존 제거)
-        Invitation invitation = Invitation.createDev();
-        invitationRepository.save(invitation);
+        // 1️⃣ DEV Invitation (고정 토큰)
+        Invitation invitation = getOrCreateDevInvitation();
 
-        // 2. jobId 생성
+        // 2️⃣ jobId
         String jobId = UUID.randomUUID().toString();
 
-        // 3. 이미지 S3 업로드
+        // 3️⃣ 이미지 업로드
         String weddingImageUrl = s3Service.uploadImage(weddingImage, "wedding-images");
         List<String> styleImageUrls = s3Service.uploadImages(styleImages, "style-images");
 
-        // 4. DesignJob 생성
-        DesignJob job = DesignJob.create(jobId, invitation, DesignJobType.DESIGN_2D);
+        // 4️⃣ DesignJob 생성
+        DesignJob job = DesignJob.create(jobId, invitation, DESIGN_2D);
         designJobRepository.save(job);
 
-        // 5️⃣ PROCESSING → COMPLETED 바로 전환
+        // 5️⃣ PROCESSING
         job.startProcessing();
         designJobRepository.save(job);
 
-        // 6️⃣ 🎯 MOCK 결과 생성 (프론트 기대 구조)
+        // 6️⃣ MOCK 결과
         List<String> mockResultImageUrls = List.of(
                 weddingImageUrl,
-                styleImageUrls.get(0)
+                styleImageUrls.isEmpty() ? weddingImageUrl : styleImageUrls.get(0)
         );
 
-        // 7️⃣ 완료 처리
-        job.complete(mockResultImageUrls);
+        // ✅ DEV용 MOCK 텍스트
+        job.complete(
+                mockResultImageUrls,
+                "DEV 테스트용 인사말입니다.",
+                "DEV 테스트용 초대 문구입니다.",
+                "DEV 테스트용 장소 문구입니다."
+        );
         designJobRepository.save(job);
 
-        // 8️⃣ 응답
+        // 7️⃣ 응답
         return ResponseEntity.ok(
                 new Design2DGenerateRes("COMPLETED", mockResultImageUrls)
         );
@@ -196,7 +216,7 @@ public class InvitationController {
      */
     @GetMapping("/api/invitations/design/status")
     public ResponseEntity<Design2DGenerateRes> getDesignStatus(HttpServletRequest httpRequest) {
-        return getJobStatus(httpRequest, DesignJobType.DESIGN_2D);
+        return getJobStatus(httpRequest, DESIGN_2D);
     }
 
     /**
@@ -204,7 +224,7 @@ public class InvitationController {
      */
     @GetMapping("/api/invitations/3d/status")
     public ResponseEntity<Design2DGenerateRes> get3DStatus(HttpServletRequest httpRequest) {
-        return getJobStatus(httpRequest, DesignJobType.MODEL_3D);
+        return getJobStatus(httpRequest, MODEL_3D);
     }
 
     /**
@@ -309,7 +329,7 @@ public class InvitationController {
         String jobId = UUID.randomUUID().toString();
 
         // 2. DesignJob 생성 (MODEL_3D)
-        DesignJob job = DesignJob.create(jobId, invitation, DesignJobType.MODEL_3D);
+        DesignJob job = DesignJob.create(jobId, invitation, MODEL_3D);
         designJobRepository.save(job);
 
         // 3️⃣ S3 업로드
@@ -357,6 +377,93 @@ public class InvitationController {
 //
 //        return ResponseEntity.ok(new Design2DGenerateRes("PROCESSING", null));
 //    }
+
+    @GetMapping("/api/results")
+    public ResponseEntity<ResultViewRes> getResult(HttpServletRequest request) {
+        // 1. 쿠키에서 Invitation 조회
+        Invitation invitation = getInvitationFromCookie(request);
+        if (invitation == null) {
+            return ResponseEntity.status(401).body(new ResultViewRes(false, null));
+        }
+
+        List<DesignJob> jobs = designJobRepository.findByInvitationId(invitation.getId());
+        for (DesignJob job : jobs) {
+            log.info(job.toString());
+        }
+        // 2. JobType으로 최신 Job 조회
+        DesignJob job_2d = designJobRepository
+                .findTopByInvitationIdAndJobTypeOrderByCreatedAtDesc(invitation.getId(), DESIGN_2D)
+                .orElse(null);
+
+        DesignJob job_3d = designJobRepository
+                .findTopByInvitationIdAndJobTypeOrderByCreatedAtDesc(invitation.getId(), MODEL_3D)
+                .orElse(null);
+
+        if (job_2d == null || job_3d == null) {
+            return ResponseEntity.status(404).body(new ResultViewRes(false, null));
+        }
+
+        return ResponseEntity.ok(
+                ResultViewRes.success(
+                        job_2d.getResultImageUrls(),
+                        job_3d.getResultImageUrls().get(0),
+                        new ResultViewRes.Texts(
+                                job_2d.getText_greeting(),
+                                job_2d.getText_invitation(),
+                                job_2d.getText_location()
+                        )
+                )
+        );
+    }
+
+    /**
+     * ⚠️ [DEV ONLY] 쿠키 없이 3D 모델 테스트용 API
+     * FastAPI 호출 없이 DB에 바로 COMPLETED 저장
+     */
+    @PostMapping(
+            value = "/api/dev/invitations/3d",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    public ResponseEntity<Design2DGenerateRes> devCreate3D(
+            @RequestPart("mainImage") MultipartFile mainImage,
+            @RequestPart(value = "optionalImages", required = false)
+            List<MultipartFile> optionalImages
+    ) {
+        // 1️⃣ DEV Invitation 생성
+        Invitation invitation = getOrCreateDevInvitation();
+
+        // 2️⃣ jobId 생성
+        String jobId = UUID.randomUUID().toString();
+
+        // 3️⃣ DesignJob 생성 (MODEL_3D)
+        DesignJob job = DesignJob.create(jobId, invitation, MODEL_3D);
+        designJobRepository.save(job);
+
+        // 4️⃣ S3 업로드
+        String mainImageUrl = s3Service.uploadImage(mainImage, "dev-3d/main");
+
+        List<String> optionalUrls = optionalImages != null
+                ? s3Service.uploadImages(optionalImages, "dev-3d/optional")
+                : List.of();
+
+        // 5️⃣ 🎯 MOCK 3D 결과 URL
+        String mock3dModelUrl =
+                "https://dns7warjxrmv9.cloudfront.net/3d_models/dev-" + jobId + ".glb";
+
+        // 6️⃣ 바로 COMPLETED 처리
+        job.startProcessing();
+        job.complete(List.of(mock3dModelUrl));
+        designJobRepository.save(job);
+
+        // 7️⃣ 응답
+        return ResponseEntity.ok(
+                new Design2DGenerateRes(
+                        "COMPLETED",
+                        List.of(mock3dModelUrl)
+                )
+        );
+    }
+    // token이랑 taskId로 기록된 값을 보여주는
 
     /* ========== 공통 헬퍼 메서드 ========== */
 
@@ -432,5 +539,17 @@ public class InvitationController {
             }
         }
         return null;
+    }
+    private Invitation getOrCreateDevInvitation() {
+        return invitationRepository
+                .findTopByTempTokenOrderByCreatedAtDesc(DEV_TOKEN)
+                .orElseGet(() -> {
+                    Invitation inv = new Invitation(
+                            DEV_TOKEN,
+                            InvitationStatus.INIT,
+                            LocalDateTime.now()
+                    );
+                    return invitationRepository.save(inv);
+                });
     }
 }

@@ -1,6 +1,7 @@
 package com.ktb_tf_team_10_be.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ktb_tf_team_10_be.dto.Design2DFastApiResponse;
 import com.ktb_tf_team_10_be.dto.Design2DGenerateReq;
 import com.ktb_tf_team_10_be.dto.FastApiDesign2DRequest;
 import com.ktb_tf_team_10_be.dto.FastApiDesign2DResponse;
@@ -26,7 +27,7 @@ public class Design2DFastApiClient {
      * @param styleImageUrls S3에 업로드된 스타일 이미지 URL 리스트
      * @return 생성된 이미지 URL 리스트
      */
-    public List<String> requestDesign2D(
+    public Design2DFastApiResponse requestDesign2D(
             String jobId,
             Design2DGenerateReq req,
             String weddingImageUrl,
@@ -45,18 +46,18 @@ public class Design2DFastApiClient {
                 req.tone()
         );
 
-        FastApiDesign2DResponse response = fastApi2DClient.post()
+        Design2DFastApiResponse response = fastApi2DClient.post()
                 .uri("/api/generate-invitation")
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(body)
                 .retrieve()
-                .bodyToMono(FastApiDesign2DResponse.class)
+                .bodyToMono(Design2DFastApiResponse.class)
                 .block();
 
         if (response == null || !response.success() || response.data() == null) {
             throw new RuntimeException("FastAPI 2D 디자인 실패");
         }
 
-        return response.data().imageUrls();
+        return response;
     }
 }
